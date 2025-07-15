@@ -1,5 +1,5 @@
 <!--
-Copyright 2018 Google LLC. All Rights Reserved.
+Copyright 2024 Your Name. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,70 +16,294 @@ limitations under the License.
 -->
 
 <!doctype html>
-
+<html lang="en">
 <head>
-  <title>Project Classification+X</title>
+  <title>Bird Identifier</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="shared/tfjs-examples.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #003310 url('backbird.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .glass-card {
+      width: 340px;
+      max-width: 95vw;
+      min-width: 240px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 8px 32px rgba(0, 51, 16, 0.18), 0 1.5px 6px 0 rgba(199,239,78,0.08);
+      position: relative;
+      overflow: hidden;
+      padding: 2.5rem 2rem 2rem 2rem;
+      text-align: center;
+    }
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.5),
+        transparent
+      );
+    }
+    .glass-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.3),
+        transparent,
+        rgba(255, 255, 255, 0.1)
+      );
+    }
+    h1 {
+      color: #fff;
+      font-size: 2.3rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+    .subtitle {
+      color: #C7EF4E;
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+    .dropzone {
+      border: none;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.22);
+      padding: 2rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 1.2rem;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(0,51,16,0.08);
+    }
+    .dropzone.dragover {
+      outline: 2px solid #003310;
+      background: #eaffc1;
+    }
+    .dropzone input[type="file"] {
+      display: none;
+    }
+    .dropzone .icon {
+      font-size: 2.5rem;
+      color: #003310;
+      margin-bottom: 0.5rem;
+    }
+    .dropzone .text {
+      color: #003310;
+      font-size: 1.1rem;
+      margin-bottom: 0.7rem;
+    }
+    .dropzone .select-btn {
+      background: #C7EF4E;
+      color: #003310;
+      border: 1.5px solid #C7EF4E;
+      border-radius: 10px;
+      padding: 0.5rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: 'Inter', Arial, sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+    .dropzone .select-btn:hover {
+      background: #003310;
+      color: #C7EF4E;
+      border: 1.5px solid #C7EF4E;
+    }
+    .image-preview {
+      margin: 1.2rem 0 1.5rem 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .image-preview img {
+      max-width: 220px;
+      max-height: 220px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,51,16,0.08);
+      margin-bottom: 0.7rem;
+      border: none;
+    }
+    .placeholder {
+      color: #C7EF4E;
+      font-style: italic;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .prediction-section {
+      margin-top: 1.2rem;
+      padding: 0.4rem 1.2rem;
+      background: rgba(0,51,16,0.85);
+      border-radius: 999px;
+      color: #C7EF4E;
+      font-size: 1.08rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      min-height: 1.8rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid #C7EF4E;
+      box-shadow: 0 1.5px 6px rgba(0,0,0,0.08);
+      transition: background 0.2s, color 0.2s;
+    }
+    .predict-btn {
+      padding: 0.7rem 2.2rem;
+      font-size: 1.1rem;
+      border: 1.5px solid #C7EF4E;
+      border-radius: 10px;
+      background: #C7EF4E;
+      color: #003310;
+      font-weight: 600;
+      font-family: 'Inter', Arial, sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      margin-top: 0.5rem;
+    }
+    .predict-btn:disabled {
+      background: #003310;
+      color: #fff;
+      border: 1.5px solid #C7EF4E;
+      cursor: not-allowed;
+    }
+    .predict-btn:hover:not(:disabled) {
+      background: #003310;
+      color: #C7EF4E;
+      border: 1.5px solid #C7EF4E;
+    }
+    @media (max-width: 500px) {
+      .glass-card {
+        width: 98vw;
+        min-width: unset;
+        padding: 1.2rem 0.2rem;
+      }
+      .image-preview img {
+        max-width: 90vw;
+      }
+    }
+  </style>
 </head>
-
-<style>
-  .pred-container {
-    margin-bottom: 20px;
-  }
-
-  .pred-container > div {
-    display: inline-block;
-    margin-right: 20px;
-    vertical-align: top;
-  }
-
-  .row {
-    display: table-row;
-  }
-  .cell {
-    display: table-cell;
-    padding-right: 20px;
-  }
-
-  #file-container {
-    margin-bottom: 20px;
-  }
-</style>
-
 <body>
-  <div class="tfjs-example-container">
-    <section class='title-area'>
-      <h1>Fruits and Veggies Classification</h1>
-    </section>
-
-    <section>
-      <img src="dataset.jpg" style="width: 50%;">
-      <p class='section-head'>Description</p>
-      <p>
-        We classify 9 categories of fruits and veggies. 
-      </p>
-    </section>
-
-    <section>
-      <p class='section-head'>Status</p>
-      <div id="status"></div>
-    </section>
-
-    <section>
-      <p class='section-head'>Model Output</p>
-
-      <div id="file-container" style="display: none">
-        Upload an image: <input type="file" id="files" name="files[]" multiple />
-      </div>
-
-      <div id="predictions"></div>
-
-      <img style="display: none" id="cat" src="ai4all.jpg" width=224 height=224 />
-    </section>
-
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.5.2"></script>
-    <script src="index.js"></script>
+  <div class="glass-card">
+    <h1>Bird Identifier</h1>
+    <div class="subtitle">Upload a bird image to identify its species</div>
+    <div class="dropzone" id="dropzone">
+      <div class="icon">&#8682;</div>
+      <div class="text">Select a file or drag here</div>
+      <button type="button" class="select-btn" id="selectBtn">Select a file</button>
+      <input type="file" id="imageInput" accept="image/*" />
+    </div>
+    <div class="image-preview" id="imagePreview">
+      <span class="placeholder">No image selected</span>
+    </div>
+    <button class="predict-btn" id="predictBtn" disabled>Predict</button>
+    <div class="prediction-section" id="predictionSection" style="display: none; margin-left: auto; margin-right: auto;">
+      <span id="prediction" class="placeholder"></span>
+    </div>
   </div>
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const imageInput = document.getElementById('imageInput');
+    const selectBtn = document.getElementById('selectBtn');
+    const imagePreview = document.getElementById('imagePreview');
+    const predictBtn = document.getElementById('predictBtn');
+    const predictionSpan = document.getElementById('prediction');
+
+    let selectedFile = null;
+
+    // Drag and drop events
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files && files[0]) {
+        handleFile(files[0]);
+      }
+    });
+    // Click to select
+    selectBtn.addEventListener('click', () => {
+      imageInput.click();
+    });
+    imageInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFile(e.target.files[0]);
+      }
+    });
+    function handleFile(file) {
+      if (!file.type.startsWith('image/')) {
+        imagePreview.innerHTML = '<span class="placeholder">Please select an image file</span>';
+        predictBtn.disabled = true;
+        selectedFile = null;
+        document.getElementById('predictionSection').style.display = 'none';
+        return;
+      }
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview" />`;
+      };
+      reader.readAsDataURL(file);
+      predictBtn.disabled = false;
+      // Hide prediction info until prediction is made
+      document.getElementById('predictionSection').style.display = 'none';
+      predictionSpan.textContent = '';
+    }
+    // Predict button
+    predictBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      predictionSpan.textContent = 'Predicting...';
+      predictionSpan.className = '';
+      document.getElementById('predictionSection').style.display = 'flex';
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          body: formData
+        });
+        if (!response.ok) throw new Error('Prediction failed.');
+        const data = await response.json();
+        predictionSpan.textContent = data.prediction || 'No prediction';
+        predictionSpan.className = '';
+        document.getElementById('predictionSection').style.display = 'flex';
+      } catch (err) {
+        predictionSpan.textContent = err.message;
+        predictionSpan.className = '';
+        document.getElementById('predictionSection').style.display = 'flex';
+      }
+    });
+  </script>
 </body>
+</html>
